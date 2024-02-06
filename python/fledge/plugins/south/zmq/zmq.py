@@ -4,7 +4,7 @@
 # See: http://fledge-iot.readthedocs.io/
 # FLEDGE_END
 
-""" 
+"""
 """
 
 import zmq
@@ -98,7 +98,7 @@ def plugin_init(config):
 
 
 def plugin_start(handle):
-    global loop
+    #TODO: remove global loop
     #TODO: remove loop = asyncio.new_event_loop()
 
     _LOGGER.info('Starting ZMQ south plugin...')
@@ -144,7 +144,7 @@ def plugin_shutdown(handle):
     Returns:
     Raises:
     """
-    global loop
+    #TODO: remove global loop
     try:
         _LOGGER.info('Shutting down ZMQ south plugin...')
         _zmq = handle["_zmq"]
@@ -172,9 +172,9 @@ def plugin_register_ingest(handle, callback, ingest_ref):
 
 class ZMQSubscriberClient(object):
 
-    """ zmq listener class"""
+    """ zmq subscriber class"""
 
-    __slots__ = ['proxy_host', 'proxy_port', 'topic', 'asset']
+    __slots__ = ['proxy_host', 'proxy_port', 'topic', 'asset', 'poller']
 
     def __init__(self, config):
         self.proxy_host = config['proxyHost']['value']
