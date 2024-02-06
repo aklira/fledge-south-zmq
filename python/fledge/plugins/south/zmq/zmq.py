@@ -10,7 +10,7 @@
 import zmq
 import copy
 import logging
-import asyncio
+#TODO: remove import asyncio
 import json
 from threading import Thread
 
@@ -29,7 +29,7 @@ _LOGGER = logger.setup(__name__, level=logging.INFO)
 
 c_callback = None
 c_ingest_ref = None
-loop = None
+#TODO: remove loop = None
 
 _DEFAULT_CONFIG = {
     'plugin': {
@@ -72,7 +72,6 @@ _DEFAULT_CONFIG = {
     }
 }
 
-
 def plugin_info():
     return {
         'name': 'ZMQ Subscriber',
@@ -100,12 +99,12 @@ def plugin_init(config):
 
 def plugin_start(handle):
     global loop
-    loop = asyncio.new_event_loop()
+    #TODO: remove loop = asyncio.new_event_loop()
 
     _LOGGER.info('Starting ZMQ south plugin...')
     try:
         _zmq = handle["_zmq"]
-        _zmq.loop = loop
+        #TODO: remove _zmq.loop = loop
         _zmq.start()
     except Exception as e:
         _LOGGER.exception(str(e))
@@ -148,11 +147,11 @@ def plugin_shutdown(handle):
     global loop
     try:
         _LOGGER.info('Shutting down ZMQ south plugin...')
-        _mqtt = handle["_mqtt"]
-        _mqtt.stop()
+        _zmq = handle["_zmq"]
+        _zmq.stop()
         
-        loop.stop()
-        loop = None
+        #TODO: remove loop.stop()
+        #TODO: remove loop = None
     except Exception as e:
         _LOGGER.exception(str(e))
     else:
@@ -175,6 +174,8 @@ class ZMQSubscriberClient(object):
 
     """ zmq listener class"""
 
+    __slots__ = ['proxy_host', 'proxy_port', 'topic', 'asset']
+
     def __init__(self, config):
         self.proxy_host = config['proxyHost']['value']
         self.proxy_port = int(config['proxyPort']['value'])
@@ -189,18 +190,6 @@ class ZMQSubscriberClient(object):
     def stop(self):
         self.poller.stop()
         _LOGGER.info("Subscriber stopped")
-
-    async def save(self, msg):
-        """Store msg content to Fledge """
-        # TODO: string and other types?
-        payload_json = json.loads(msg.payload.decode('utf-8'))
-        _LOGGER.debug("Ingesting %s on topic %s", payload_json, str(msg.topic)) 
-        data = {
-            'asset': self.asset,
-            'timestamp': utils.local_timestamp(),
-            'readings': payload_json
-        }
-        async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
 
 class Poller(Thread):
 
@@ -221,6 +210,19 @@ class Poller(Thread):
         while self.loop:
             message = subscriber.recv()
             _LOGGER.info('poller {}: {}'.format(self.id, message))
+            self.save(message)
 
     def stop(self):
         self.loop = False
+
+    async def save(self, msg):
+        """Store msg content to Fledge """
+        # TODO: string and other types?
+        payload_json = json.loads(msg.payload.decode('utf-8'))
+        _LOGGER.debug("Ingesting %s on topic %s", payload_json, str(msg.topic)) 
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_json
+        }
+        async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
